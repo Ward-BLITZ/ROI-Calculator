@@ -1,0 +1,26 @@
+{
+  "name": "Blitzpower ROI Calculator — Laadpunten",
+  "short_name": "Blitz ROI",
+  "description": "Bereken de terugverdientijd en ROI van een investering in publieke laadpunten.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1D252D",
+  "lang": "nl",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
