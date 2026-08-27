@@ -1,1 +1,539 @@
-test
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Blitzpower — ROI Calculator Laadpalen</title>
+<meta name="description" content="Bereken de terugverdientijd en ROI van een investering in publieke laadpalen.">
+<meta name="theme-color" content="#1D252D">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#00DFA3;
+    --green-strong:#00AB8E;
+    --blue:#1D252D;
+    --grey:#D9D9D6;
+    --white:#FFFFFF;
+    --card-bg:#FFFFFF;
+    --page-bg:#F4F5F4;
+    --text:#1D252D;
+    --text-muted:#5B6670;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(29,37,45,.06), 0 4px 16px rgba(29,37,45,.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--page-bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+  }
+  h1,h2,h3,.brand-word,.stat-value,.btn{font-family:'Poppins',system-ui,sans-serif;}
+  a{color:var(--green-strong);}
+
+  header.top{
+    background:var(--blue);
+    color:var(--white);
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    position:sticky;
+    top:0;
+    z-index:20;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+  }
+  .bolt{width:28px;height:28px;flex:none;}
+  .bolt path{fill:var(--green);}
+  header.top .titles{display:flex;flex-direction:column;line-height:1.15;}
+  header.top .brand-word{font-weight:700;font-size:18px;letter-spacing:.2px;}
+  header.top .subtitle{font-size:12.5px;color:var(--grey);font-weight:500;}
+
+  main{max-width:1180px;margin:0 auto;padding:20px 16px 0;}
+  .intro{margin:4px 4px 18px;color:var(--text-muted);font-size:14px;max-width:70ch;}
+
+  .layout{display:grid;grid-template-columns:1fr;gap:20px;align-items:start;}
+  @media (min-width:960px){
+    .layout{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;}
+    .results-col{position:sticky;top:88px;}
+  }
+
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--grey);
+    border-radius:var(--radius);
+    padding:18px 18px 20px;
+    margin-bottom:18px;
+    box-shadow:var(--shadow);
+  }
+  .card h2{
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--green-strong);
+    margin:0 0 14px;
+    font-weight:700;
+  }
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:5px;
+    color:var(--text);
+  }
+  .field .hint{font-size:11.5px;color:var(--text-muted);font-weight:400;margin-left:4px;}
+  .input-row{display:flex;align-items:center;gap:8px;}
+  input[type="number"], input[type="text"]{
+    width:100%;
+    padding:9px 10px;
+    border:1.5px solid var(--grey);
+    border-radius:9px;
+    font-size:14.5px;
+    font-family:inherit;
+    color:var(--text);
+    background:#fff;
+    transition:border-color .15s;
+  }
+  input[type="number"]:focus, input[type="text"]:focus{
+    outline:none;
+    border-color:var(--green-strong);
+  }
+  .unit-input{position:relative;}
+  .unit-input input{padding-right:44px;}
+  .unit-input .unit{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    font-size:12.5px;color:var(--text-muted);font-weight:600;pointer-events:none;
+  }
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .split-sync{display:grid;grid-template-columns:1.3fr .8fr;gap:8px;align-items:end;}
+  .split-sync .field{margin-bottom:0;}
+  input[type="range"]{
+    width:100%;
+    accent-color:var(--green-strong);
+    margin-top:6px;
+  }
+  .readout{
+    display:flex;justify-content:space-between;align-items:baseline;
+    background:#F6FAF9;border:1px dashed var(--grey);border-radius:9px;
+    padding:9px 12px;font-size:13.5px;margin-top:4px;
+  }
+  .readout .val{font-weight:700;color:var(--blue);font-family:'Poppins',sans-serif;}
+  .readout.total .val{color:var(--green-strong);font-size:15px;}
+
+  .checkbox-row{display:flex;align-items:center;gap:9px;}
+  .checkbox-row input[type="checkbox"]{width:18px;height:18px;accent-color:var(--green-strong);}
+  .checkbox-row label{margin:0;font-size:13.5px;font-weight:600;}
+
+  .btn{
+    display:inline-block;
+    background:transparent;
+    border:1.5px solid var(--grey);
+    color:var(--text);
+    font-size:12.5px;font-weight:600;
+    padding:8px 14px;border-radius:9px;
+    cursor:pointer;
+  }
+  .btn:hover{border-color:var(--green-strong);color:var(--green-strong);}
+
+  /* Results */
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px;}
+  .stat-tile{
+    background:var(--blue);color:var(--white);
+    border-radius:12px;padding:14px 10px;text-align:center;
+  }
+  .stat-tile .stat-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--grey);font-weight:600;margin-bottom:6px;}
+  .stat-tile .stat-value{font-size:18px;font-weight:700;color:var(--green);line-height:1.15;}
+  .stat-tile .stat-sub{font-size:10.5px;color:var(--grey);margin-top:3px;}
+  @media (max-width:480px){
+    .stat-grid{grid-template-columns:1fr;}
+  }
+
+  table.detail{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:14px;}
+  table.detail td{padding:7px 0;border-bottom:1px solid #EEF0EF;}
+  table.detail td:last-child{text-align:right;font-weight:700;font-family:'Poppins',sans-serif;color:var(--blue);}
+  table.detail tr.highlight td{color:var(--green-strong);font-size:14.5px;}
+  table.detail tr:last-child td{border-bottom:none;}
+
+  .chart-wrap{margin-top:16px;position:relative;}
+  svg#chart{width:100%;height:auto;display:block;overflow:visible;}
+  .tooltip{
+    position:absolute;pointer-events:none;
+    background:var(--blue);color:#fff;font-size:12px;
+    padding:6px 9px;border-radius:8px;line-height:1.35;
+    transform:translate(-50%,-115%);white-space:nowrap;
+    box-shadow:var(--shadow);opacity:0;transition:opacity .1s;
+    font-family:'Inter',sans-serif;
+  }
+  .tooltip strong{font-family:'Poppins',sans-serif;color:var(--green);}
+
+  .warn-banner{
+    background:#FFF6E9;border:1px solid #F0D9A8;color:#7A5A15;
+    font-size:13px;border-radius:9px;padding:9px 12px;margin-top:10px;display:none;
+  }
+  .warn-banner.show{display:block;}
+
+  footer.legal{max-width:1180px;margin:26px auto 0;padding:0 16px;color:var(--text-muted);font-size:11.5px;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <svg class="bolt" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+  <div class="titles">
+    <span class="brand-word">Blitzpower</span>
+    <span class="subtitle">ROI Calculator — Publieke Laadpalen</span>
+  </div>
+</header>
+
+<main>
+  <p class="intro">Simuleer de terugverdientijd en het rendement van een investering in publiek toegankelijke laadpalen. Alle cijfers herberekenen automatisch terwijl je typt.</p>
+
+  <div class="layout">
+    <!-- INPUTS -->
+    <section class="inputs" id="inputs">
+
+      <div class="card">
+        <h2>Investering</h2>
+        <div class="two-col">
+          <div class="field">
+            <label for="aantalPalen">Aantal laadpalen</label>
+            <input type="number" id="aantalPalen" min="1" step="1" value="4">
+          </div>
+          <div class="field">
+            <label for="kostprijsPaal">Kostprijs per laadpaal</label>
+            <div class="unit-input"><input type="number" id="kostprijsPaal" min="0" step="50" value="3500"><span class="unit">€</span></div>
+          </div>
+        </div>
+        <div class="readout"><span>Totale kostprijs laadpalen</span><span class="val" id="outKostprijsPalen">—</span></div>
+
+        <div class="field" style="margin-top:14px;">
+          <label for="installatiekost">Totale installatiekost <span class="hint">(volledig project)</span></label>
+          <div class="unit-input"><input type="number" id="installatiekost" min="0" step="50" value="2000"><span class="unit">€</span></div>
+        </div>
+        <div class="readout total"><span>Totale investering</span><span class="val" id="outTotaleInvestering">—</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Kosten</h2>
+        <div class="field">
+          <label for="beheerMaand">Maandelijkse kosten beheer / CPO</label>
+          <div class="unit-input"><input type="number" id="beheerMaand" min="0" step="5" value="40"><span class="unit">€/mnd</span></div>
+        </div>
+        <div class="field">
+          <div class="checkbox-row">
+            <input type="checkbox" id="serviceEnabled">
+            <label for="serviceEnabled">Servicecontract van toepassing</label>
+          </div>
+        </div>
+        <div class="field" id="serviceMaandWrap" style="display:none;">
+          <label for="serviceMaand">Servicecontractkosten</label>
+          <div class="unit-input"><input type="number" id="serviceMaand" min="0" step="5" value="25"><span class="unit">€/mnd</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Tarief &amp; gebruik</h2>
+        <div class="two-col">
+          <div class="field">
+            <label for="vermogenKW">Vermogen per laadpaal</label>
+            <div class="unit-input"><input type="number" id="vermogenKW" min="0" step="0.5" value="7.5"><span class="unit">kW</span></div>
+          </div>
+          <div class="field">
+            <label for="prijsKWh">Verkoopprijs per kWh</label>
+            <div class="unit-input"><input type="number" id="prijsKWh" min="0" step="0.01" value="0.45"><span class="unit">€</span></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Publiek gebruik per jaar <span class="hint">(dagen, altijd hele dagen)</span></label>
+          <div class="split-sync">
+            <div class="field"><input type="number" id="dagenPerJaar" min="0" max="365" step="1" value="250"></div>
+            <div class="field"><div class="unit-input"><input type="number" id="dagenPercent" min="0" max="100" step="0.1" value="68.5"><span class="unit">%</span></div></div>
+          </div>
+          <input type="range" id="dagenSlider" min="0" max="365" step="1" value="250">
+        </div>
+
+        <div class="field">
+          <label>Gebruik per dag <span class="hint">(uren op 24u, stappen van een kwartier)</span></label>
+          <div class="split-sync">
+            <div class="field"><div class="unit-input"><input type="number" id="urenPerDag" min="0" max="24" step="0.25" value="1.5"><span class="unit">u</span></div></div>
+            <div class="field"><div class="unit-input"><input type="number" id="urenPercent" min="0" max="100" step="0.1" value="6.3"><span class="unit">%</span></div></div>
+          </div>
+          <input type="range" id="urenSlider" min="0" max="24" step="0.25" value="1.5">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Duurtijd</h2>
+        <div class="field">
+          <label for="duurtijdJaren">Berekend over</label>
+          <div class="unit-input"><input type="number" id="duurtijdJaren" min="1" max="30" step="1" value="10"><span class="unit">jaar</span></div>
+        </div>
+        <button class="btn" id="resetBtn" type="button">↺ Standaardwaarden</button>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <aside class="results-col">
+      <div class="card">
+        <h2>Resultaat</h2>
+        <div class="stat-grid">
+          <div class="stat-tile">
+            <div class="stat-label">Terugverdientijd</div>
+            <div class="stat-value" id="statPayback">—</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">ROI <span id="statRoiJaren"></span></div>
+            <div class="stat-value" id="statRoi">—</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">Winst / maand</div>
+            <div class="stat-value" id="statMaandWinst">—</div>
+          </div>
+        </div>
+        <div class="warn-banner" id="warnBanner">De ingestelde kosten zijn hoger dan de opbrengsten — met deze cijfers is er geen terugverdientijd.</div>
+
+        <table class="detail">
+          <tr><td>Totale investering</td><td id="dTotInvest">—</td></tr>
+          <tr><td>Totale energie / jaar</td><td id="dEnergie">—</td></tr>
+          <tr><td>Jaarlijkse omzet</td><td id="dOmzet">—</td></tr>
+          <tr><td>Jaarlijkse kosten</td><td id="dKosten">—</td></tr>
+          <tr class="highlight"><td>Jaarlijkse winst</td><td id="dWinst">—</td></tr>
+        </table>
+
+        <div class="chart-wrap">
+          <svg id="chart" viewBox="0 0 600 220" role="img" aria-label="Cumulatieve cashflow over de duurtijd"></svg>
+          <div class="tooltip" id="tooltip"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer class="legal">Simulatietool voor indicatieve doeleinden — Blitzpower, Heirbaan 9, 9150 Kruibeke. Werkelijke resultaten kunnen afwijken.</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var eur0 = new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  var eur2 = new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  var num0 = new Intl.NumberFormat('nl-BE',{maximumFractionDigits:0});
+
+  var DEFAULTS = {
+    aantalPalen:4, kostprijsPaal:3500, installatiekost:2000,
+    beheerMaand:40, serviceEnabled:false, serviceMaand:25,
+    vermogenKW:7.5, prijsKWh:0.45,
+    dagenPerJaar:250, urenPerDag:1.5, duurtijdJaren:10
+  };
+
+  function $(id){ return document.getElementById(id); }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function getVal(id){ var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+
+  var inputsEl = $('inputs');
+
+  function applyDefaults(){
+    $('aantalPalen').value = DEFAULTS.aantalPalen;
+    $('kostprijsPaal').value = DEFAULTS.kostprijsPaal;
+    $('installatiekost').value = DEFAULTS.installatiekost;
+    $('beheerMaand').value = DEFAULTS.beheerMaand;
+    $('serviceEnabled').checked = DEFAULTS.serviceEnabled;
+    $('serviceMaand').value = DEFAULTS.serviceMaand;
+    $('serviceMaandWrap').style.display = DEFAULTS.serviceEnabled ? '' : 'none';
+    $('vermogenKW').value = DEFAULTS.vermogenKW;
+    $('prijsKWh').value = DEFAULTS.prijsKWh;
+    $('dagenPerJaar').value = DEFAULTS.dagenPerJaar;
+    $('urenPerDag').value = DEFAULTS.urenPerDag;
+    $('duurtijdJaren').value = DEFAULTS.duurtijdJaren;
+    render();
+  }
+
+  function handleInput(e){
+    var id = e.target.id;
+    if(id === 'dagenSlider'){
+      $('dagenPerJaar').value = e.target.value;
+    } else if(id === 'dagenPercent'){
+      var p = clamp(parseFloat(e.target.value) || 0, 0, 100);
+      $('dagenPerJaar').value = Math.round(p/100*365);
+    } else if(id === 'urenSlider'){
+      $('urenPerDag').value = e.target.value;
+    } else if(id === 'urenPercent'){
+      var p2 = clamp(parseFloat(e.target.value) || 0, 0, 100);
+      $('urenPerDag').value = Math.round((p2/100*24)/0.25)*0.25;
+    } else if(id === 'serviceEnabled'){
+      $('serviceMaandWrap').style.display = e.target.checked ? '' : 'none';
+    }
+    render();
+  }
+
+  inputsEl.addEventListener('input', handleInput);
+  inputsEl.addEventListener('change', handleInput);
+  $('resetBtn').addEventListener('click', applyDefaults);
+
+  function render(){
+    var aantal = Math.max(1, Math.round(getVal('aantalPalen')));
+    var kostprijsPaal = Math.max(0, getVal('kostprijsPaal'));
+    var installatie = Math.max(0, getVal('installatiekost'));
+    var beheerMaand = Math.max(0, getVal('beheerMaand'));
+    var serviceEnabled = $('serviceEnabled').checked;
+    var serviceMaand = serviceEnabled ? Math.max(0, getVal('serviceMaand')) : 0;
+    var vermogen = Math.max(0, getVal('vermogenKW'));
+    var prijsKWh = Math.max(0, getVal('prijsKWh'));
+    var dagen = clamp(Math.round(getVal('dagenPerJaar')), 0, 365);
+    var uren = clamp(Math.round(getVal('urenPerDag')/0.25)*0.25, 0, 24);
+    var duurtijd = Math.max(1, Math.round(getVal('duurtijdJaren')));
+
+    // sync fields (avoid drift, keep whole-day / quarter-hour rule)
+    $('aantalPalen').value = aantal;
+    $('dagenPerJaar').value = dagen;
+    $('dagenSlider').value = dagen;
+    $('dagenPercent').value = (dagen/365*100).toFixed(1);
+    $('urenPerDag').value = uren;
+    $('urenSlider').value = uren;
+    $('urenPercent').value = (uren/24*100).toFixed(1);
+    $('duurtijdJaren').value = duurtijd;
+
+    var totalePrijsPalen = aantal * kostprijsPaal;
+    var totaleInvestering = totalePrijsPalen + installatie;
+    var energiePerPaalJaar = vermogen * uren * dagen;
+    var totaleEnergieJaar = energiePerPaalJaar * aantal;
+    var jaarOmzet = totaleEnergieJaar * prijsKWh;
+    var jaarKosten = (beheerMaand + serviceMaand) * 12;
+    var jaarWinst = jaarOmzet - jaarKosten;
+    var maandWinst = jaarWinst / 12;
+
+    $('outKostprijsPalen').textContent = eur0.format(totalePrijsPalen);
+    $('outTotaleInvestering').textContent = eur0.format(totaleInvestering);
+    $('dTotInvest').textContent = eur0.format(totaleInvestering);
+    $('dEnergie').textContent = num0.format(totaleEnergieJaar) + ' kWh';
+    $('dOmzet').textContent = eur0.format(jaarOmzet);
+    $('dKosten').textContent = eur0.format(jaarKosten);
+    $('dWinst').textContent = eur0.format(jaarWinst);
+    $('statMaandWinst').textContent = eur0.format(maandWinst);
+
+    var warn = $('warnBanner');
+    var paybackYears = null;
+    if(jaarWinst > 0 && totaleInvestering > 0){
+      paybackYears = totaleInvestering / jaarWinst;
+      var jarenHeel = Math.floor(paybackYears);
+      var maandenRest = Math.round((paybackYears - jarenHeel)*12);
+      if(maandenRest === 12){ jarenHeel += 1; maandenRest = 0; }
+      $('statPayback').textContent = jarenHeel + 'j ' + maandenRest + 'm';
+      warn.classList.remove('show');
+    } else if(totaleInvestering <= 0){
+      $('statPayback').textContent = '—';
+      warn.classList.remove('show');
+    } else {
+      $('statPayback').textContent = 'n.v.t.';
+      warn.classList.add('show');
+    }
+
+    var roi = totaleInvestering > 0 ? ((jaarWinst*duurtijd - totaleInvestering)/totaleInvestering*100) : 0;
+    $('statRoi').textContent = Math.round(roi) + '%';
+    $('statRoiJaren').textContent = '(' + duurtijd + 'j)';
+
+    drawChart(totaleInvestering, jaarWinst, duurtijd, paybackYears);
+  }
+
+  // ---- Chart: cumulative cashflow, single-series line, brand green on white ----
+  var chartData = {points:[], investering:0, jaarWinst:0, duurtijd:0};
+
+  function drawChart(investering, jaarWinst, duurtijd, paybackYears){
+    var svg = $('chart');
+    var w = 600, h = 220, padL = 54, padR = 16, padT = 18, padB = 26;
+
+    var years = [-investering];
+    for(var y=1; y<=duurtijd; y++){ years.push(years[y-1] + jaarWinst); }
+
+    var minY = Math.min.apply(null, years.concat([0]));
+    var maxY = Math.max.apply(null, years.concat([0]));
+    if(minY === maxY){ maxY = minY + 1; }
+    var range = maxY - minY;
+
+    var innerW = w - padL - padR, innerH = h - padT - padB;
+    var stepX = duurtijd > 0 ? innerW/duurtijd : innerW;
+    function xFor(i){ return padL + i*stepX; }
+    function yFor(v){ return padT + (maxY - v)/range*innerH; }
+
+    var zeroY = yFor(0);
+    var pts = years.map(function(v,i){ return xFor(i)+','+yFor(v); }).join(' ');
+
+    var breakEvenX = null;
+    if(paybackYears !== null && paybackYears <= duurtijd){
+      breakEvenX = xFor(paybackYears);
+    }
+
+    var svgParts = [];
+    svgParts.push('<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(w-padR)+'" y2="'+zeroY+'" stroke="#D9D9D6" stroke-width="1" stroke-dasharray="3 4"/>');
+    svgParts.push('<text x="'+(padL-8)+'" y="'+(zeroY+4)+'" font-size="10" fill="#5B6670" text-anchor="end" font-family="Inter,sans-serif">€0</text>');
+    svgParts.push('<text x="'+(padL-8)+'" y="'+(padT+4)+'" font-size="10" fill="#5B6670" text-anchor="end" font-family="Inter,sans-serif">'+eur0.format(maxY)+'</text>');
+    svgParts.push('<text x="'+(padL-8)+'" y="'+(h-padB+4)+'" font-size="10" fill="#5B6670" text-anchor="end" font-family="Inter,sans-serif">'+eur0.format(minY)+'</text>');
+
+    if(breakEvenX !== null){
+      svgParts.push('<line x1="'+breakEvenX+'" y1="'+padT+'" x2="'+breakEvenX+'" y2="'+(h-padB)+'" stroke="#00AB8E" stroke-width="1" stroke-dasharray="2 3" opacity="0.6"/>');
+    }
+
+    svgParts.push('<polyline points="'+pts+'" fill="none" stroke="#00AB8E" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>');
+
+    years.forEach(function(v,i){
+      var r = (i===0 || i===years.length-1) ? 4 : 3;
+      svgParts.push('<circle cx="'+xFor(i)+'" cy="'+yFor(v)+'" r="'+r+'" fill="#FFFFFF" stroke="#00AB8E" stroke-width="2"/>');
+    });
+
+    if(breakEvenX !== null){
+      svgParts.push('<circle cx="'+breakEvenX+'" cy="'+zeroY+'" r="5" fill="#00AB8E" stroke="#FFFFFF" stroke-width="2"/>');
+      svgParts.push('<text x="'+breakEvenX+'" y="'+(padT-4)+'" font-size="10" fill="#1D252D" text-anchor="middle" font-weight="600" font-family="Inter,sans-serif">Break-even</text>');
+    }
+
+    svgParts.push('<text x="'+padL+'" y="'+(h-6)+'" font-size="10" fill="#1D252D" font-family="Inter,sans-serif">Jaar 0</text>');
+    svgParts.push('<text x="'+(w-padR)+'" y="'+(h-6)+'" font-size="10" fill="#1D252D" text-anchor="end" font-family="Inter,sans-serif">Jaar '+duurtijd+'</text>');
+
+    svg.innerHTML = svgParts.join('');
+
+    chartData = {years:years, xFor:xFor, yFor:yFor, duurtijd:duurtijd, w:w, h:h};
+  }
+
+  // hover tooltip (crosshair-lite: nearest-point tooltip)
+  var chartWrap = document.querySelector('.chart-wrap');
+  var tooltip = $('tooltip');
+  var svgEl = $('chart');
+
+  svgEl.addEventListener('mousemove', function(e){
+    if(!chartData.years || chartData.duurtijd === 0) return;
+    var rect = svgEl.getBoundingClientRect();
+    var scaleX = chartData.w / rect.width;
+    var mx = (e.clientX - rect.left) * scaleX;
+    var idx = clamp(Math.round((mx - 54) / ((chartData.w-54-16)/chartData.duurtijd)), 0, chartData.duurtijd);
+    var val = chartData.years[idx];
+    var px = chartData.xFor(idx) / chartData.w * rect.width;
+    var py = chartData.yFor(val) / chartData.h * rect.height;
+    tooltip.style.left = px + 'px';
+    tooltip.style.top = py + 'px';
+    tooltip.innerHTML = '<strong>Jaar ' + idx + '</strong><br>' + eur0.format(val);
+    tooltip.style.opacity = '1';
+  });
+  svgEl.addEventListener('mouseleave', function(){ tooltip.style.opacity = '0'; });
+
+  render();
+
+  // Register service worker for offline / PWA install
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('service-worker.js').catch(function(){ /* offline registration optional */ });
+    });
+  }
+})();
+</script>
+</body>
+</html>
