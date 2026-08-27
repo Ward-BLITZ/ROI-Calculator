@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Blitzpower — ROI Calculator Laadpalen</title>
-<meta name="description" content="Bereken de terugverdientijd en ROI van een investering in publieke laadpalen.">
+<title>Blitzpower — ROI Calculator Laadpunten</title>
+<meta name="description" content="Bereken de terugverdientijd en ROI van een investering in publieke laadpunten.">
 <meta name="theme-color" content="#1D252D">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -164,6 +164,16 @@
   table.detail tr.highlight td{color:var(--green-strong);font-size:14.5px;}
   table.detail tr:last-child td{border-bottom:none;}
 
+  .section-label{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--green-strong);font-weight:700;margin-top:18px;margin-bottom:2px;}
+
+  table.usage{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+  table.usage th{font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--text-muted);font-weight:600;text-align:right;padding:0 0 6px;}
+  table.usage th:first-child{text-align:left;}
+  table.usage td{padding:6px 0;border-bottom:1px solid #EEF0EF;text-align:right;}
+  table.usage td:first-child{text-align:left;color:var(--text-muted);}
+  table.usage td:not(:first-child){font-weight:700;font-family:'Poppins',sans-serif;color:var(--blue);}
+  table.usage tr:last-child td{border-bottom:none;}
+
   .chart-wrap{margin-top:16px;position:relative;}
   svg#chart{width:100%;height:auto;display:block;overflow:visible;}
   .tooltip{
@@ -191,12 +201,12 @@
   <svg class="bolt" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
   <div class="titles">
     <span class="brand-word">Blitzpower</span>
-    <span class="subtitle">ROI Calculator — Publieke Laadpalen</span>
+    <span class="subtitle">ROI Calculator — Publieke Laadpunten</span>
   </div>
 </header>
 
 <main>
-  <p class="intro">Simuleer de terugverdientijd en het rendement van een investering in publiek toegankelijke laadpalen. Alle cijfers herberekenen automatisch terwijl je typt.</p>
+  <p class="intro">Simuleer de terugverdientijd en het rendement van een investering in publiek toegankelijke laadpunten. Alle cijfers herberekenen automatisch terwijl je typt.</p>
 
   <div class="layout">
     <!-- INPUTS -->
@@ -206,15 +216,15 @@
         <h2>Investering</h2>
         <div class="two-col">
           <div class="field">
-            <label for="aantalPalen">Aantal laadpalen</label>
+            <label for="aantalPalen">Aantal laadpunten</label>
             <input type="number" id="aantalPalen" min="1" step="1" value="4">
           </div>
           <div class="field">
-            <label for="kostprijsPaal">Kostprijs per laadpaal</label>
+            <label for="kostprijsPaal">Kostprijs per laadpunt</label>
             <div class="unit-input"><input type="number" id="kostprijsPaal" min="0" step="50" value="3500"><span class="unit">€</span></div>
           </div>
         </div>
-        <div class="readout"><span>Totale kostprijs laadpalen</span><span class="val" id="outKostprijsPalen">—</span></div>
+        <div class="readout"><span>Totale kostprijs laadpunten</span><span class="val" id="outKostprijsPalen">—</span></div>
 
         <div class="field" style="margin-top:14px;">
           <label for="installatiekost">Totale installatiekost <span class="hint">(volledig project)</span></label>
@@ -245,7 +255,7 @@
         <h2>Tarief &amp; gebruik</h2>
         <div class="two-col">
           <div class="field">
-            <label for="vermogenKW">Vermogen per laadpaal</label>
+            <label for="vermogenKW">Vermogen per laadpunt</label>
             <div class="unit-input"><input type="number" id="vermogenKW" min="0" step="0.5" value="7.5"><span class="unit">kW</span></div>
           </div>
           <div class="field">
@@ -303,12 +313,23 @@
         </div>
         <div class="warn-banner" id="warnBanner">De ingestelde kosten zijn hoger dan de opbrengsten — met deze cijfers is er geen terugverdientijd.</div>
 
+        <div class="section-label">Energieverbruik</div>
+        <table class="usage">
+          <thead><tr><th></th><th>Per laadpunt</th><th>Totaal</th></tr></thead>
+          <tr><td>kWh / dag</td><td id="vDagPunt">—</td><td id="vDagTotaal">—</td></tr>
+          <tr><td>kWh / maand</td><td id="vMaandPunt">—</td><td id="vMaandTotaal">—</td></tr>
+          <tr><td>kWh / jaar</td><td id="vJaarPunt">—</td><td id="vJaarTotaal">—</td></tr>
+        </table>
+
+        <div class="section-label">Financieel</div>
         <table class="detail">
           <tr><td>Totale investering</td><td id="dTotInvest">—</td></tr>
-          <tr><td>Totale energie / jaar</td><td id="dEnergie">—</td></tr>
           <tr><td>Jaarlijkse omzet</td><td id="dOmzet">—</td></tr>
           <tr><td>Jaarlijkse kosten</td><td id="dKosten">—</td></tr>
           <tr class="highlight"><td>Jaarlijkse winst</td><td id="dWinst">—</td></tr>
+          <tr><td>Totale kosten (looptijd)</td><td id="dKostenLooptijd">—</td></tr>
+          <tr><td>Totale omzet (looptijd)</td><td id="dOmzetLooptijd">—</td></tr>
+          <tr class="highlight"><td>Netto resultaat (incl. investering)</td><td id="dNetto">—</td></tr>
         </table>
 
         <div class="chart-wrap">
@@ -413,10 +434,24 @@
     var jaarWinst = jaarOmzet - jaarKosten;
     var maandWinst = jaarWinst / 12;
 
+    // Energieverbruik per laadpunt en totaal, per dag/maand/jaar
+    var energiePerPuntDag = vermogen * uren;
+    var energiePerPuntMaand = energiePerPaalJaar / 12;
+    var energiePerPuntJaar = energiePerPaalJaar;
+    var energieTotaalDag = energiePerPuntDag * aantal;
+    var energieTotaalMaand = totaleEnergieJaar / 12;
+    var energieTotaalJaar = totaleEnergieJaar;
+
+    $('vDagPunt').textContent = num0.format(energiePerPuntDag) + ' kWh';
+    $('vMaandPunt').textContent = num0.format(energiePerPuntMaand) + ' kWh';
+    $('vJaarPunt').textContent = num0.format(energiePerPuntJaar) + ' kWh';
+    $('vDagTotaal').textContent = num0.format(energieTotaalDag) + ' kWh';
+    $('vMaandTotaal').textContent = num0.format(energieTotaalMaand) + ' kWh';
+    $('vJaarTotaal').textContent = num0.format(energieTotaalJaar) + ' kWh';
+
     $('outKostprijsPalen').textContent = eur0.format(totalePrijsPalen);
     $('outTotaleInvestering').textContent = eur0.format(totaleInvestering);
     $('dTotInvest').textContent = eur0.format(totaleInvestering);
-    $('dEnergie').textContent = num0.format(totaleEnergieJaar) + ' kWh';
     $('dOmzet').textContent = eur0.format(jaarOmzet);
     $('dKosten').textContent = eur0.format(jaarKosten);
     $('dWinst').textContent = eur0.format(jaarWinst);
@@ -442,6 +477,13 @@
     var roi = totaleInvestering > 0 ? ((jaarWinst*duurtijd - totaleInvestering)/totaleInvestering*100) : 0;
     $('statRoi').textContent = Math.round(roi) + '%';
     $('statRoiJaren').textContent = '(' + duurtijd + 'j)';
+
+    var kostenLooptijd = jaarKosten * duurtijd;
+    var omzetLooptijd = jaarOmzet * duurtijd;
+    var nettoResultaat = jaarWinst * duurtijd - totaleInvestering;
+    $('dKostenLooptijd').textContent = eur0.format(kostenLooptijd);
+    $('dOmzetLooptijd').textContent = eur0.format(omzetLooptijd);
+    $('dNetto').textContent = eur0.format(nettoResultaat);
 
     drawChart(totaleInvestering, jaarWinst, duurtijd, paybackYears);
   }
