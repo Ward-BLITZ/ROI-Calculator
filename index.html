@@ -130,6 +130,32 @@
   .readout .val{font-weight:700;color:var(--blue);font-family:'Poppins',sans-serif;}
   .readout.total .val{color:var(--green-strong);font-size:15px;}
 
+  .usage-total-field{margin-top:16px;}
+  .usage-bar-track{
+    position:relative;width:100%;height:12px;border-radius:6px;
+    background:var(--grey);overflow:visible;margin-top:8px;
+  }
+  .usage-bar-fill{
+    position:absolute;left:0;top:0;height:100%;border-radius:6px;
+    background:var(--green-strong);width:0%;
+    transition:width .15s, background-color .15s;
+  }
+  .usage-bar-fill.below-min{background:#D97706;}
+  .usage-bar-marker{
+    position:absolute;top:-4px;width:2px;height:20px;
+    background:var(--blue);left:0%;transform:translateX(-1px);
+  }
+  .usage-bar-marker::after{
+    content:"";position:absolute;top:-4px;left:50%;transform:translateX(-50%);
+    border-left:4px solid transparent;border-right:4px solid transparent;
+    border-top:4px solid var(--blue);
+  }
+  .usage-bar-labels{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;
+    font-size:11.5px;color:var(--text-muted);margin-top:8px;
+  }
+  .usage-bar-labels strong{color:var(--blue);font-family:'Poppins',sans-serif;}
+
   .checkbox-row{display:flex;align-items:center;gap:9px;}
   .checkbox-row input[type="checkbox"]{width:18px;height:18px;accent-color:var(--green-strong);}
   .checkbox-row label{margin:0;font-size:13.5px;font-weight:600;}
@@ -221,7 +247,7 @@
           </div>
           <div class="field">
             <label for="kostprijsPaal">Kostprijs per laadpunt</label>
-            <div class="unit-input"><input type="number" id="kostprijsPaal" min="0" step="50" value="3500"><span class="unit">€</span></div>
+            <div class="unit-input"><input type="number" id="kostprijsPaal" min="0" step="50" value="1500"><span class="unit">€</span></div>
           </div>
         </div>
         <div class="readout"><span>Totale kostprijs laadpunten</span><span class="val" id="outKostprijsPalen">—</span></div>
@@ -286,6 +312,18 @@
             <div class="field"><div class="unit-input"><input type="number" id="urenPercent" min="0" max="100" step="0.1" value="6.3"><span class="unit">%</span></div></div>
           </div>
           <input type="range" id="urenSlider" min="0" max="24" step="0.25" value="1.5">
+        </div>
+
+        <div class="field usage-total-field">
+          <label>Totaal jaargebruik <span class="hint">(uren/dag × dagen/jaar, t.o.v. alle 8.760 uren van het jaar)</span></label>
+          <div class="usage-bar-track">
+            <div class="usage-bar-fill" id="usageBarFill"></div>
+            <div class="usage-bar-marker" id="usageBarMarker"></div>
+          </div>
+          <div class="usage-bar-labels">
+            <span>Huidig gebruik: <strong id="usageCurrentPct">—</strong></span>
+            <span id="usageMinWrap">Minimum voor ROI binnen <span id="usageDuurtijdLabel">10</span>j: <strong id="usageMinPct">—</strong></span>
+          </div>
         </div>
       </div>
 
@@ -360,7 +398,7 @@
   var num0 = new Intl.NumberFormat('nl-BE',{maximumFractionDigits:0});
 
   var DEFAULTS = {
-    aantalPalen:4, kostprijsPaal:3500, installatiekost:2000,
+    aantalPalen:4, kostprijsPaal:1500, installatiekost:2000,
     beheerMaand:40, serviceEnabled:false, serviceMaand:25,
     vermogenKW:7.5, prijsKWh:0.45, aankoopKWh:0.28,
     dagenPerJaar:250, urenPerDag:1.5, duurtijdJaren:10
@@ -409,6 +447,9 @@
 
   inputsEl.addEventListener('input', handleInput);
   inputsEl.addEventListener('change', handleInput);
+  // Safety net: when a field is left empty and blurred without a change/input
+  // firing render() again, make sure it still snaps back to a valid value.
+  inputsEl.addEventListener('focusout', function(){ render(); });
   $('resetBtn').addEventListener('click', applyDefaults);
 
   function render(){
@@ -425,15 +466,20 @@
     var uren = clamp(Math.round(getVal('urenPerDag')/0.25)*0.25, 0, 24);
     var duurtijd = Math.max(1, Math.round(getVal('duurtijdJaren')));
 
-    // sync fields (avoid drift, keep whole-day / quarter-hour rule)
-    $('aantalPalen').value = aantal;
-    $('dagenPerJaar').value = dagen;
-    $('dagenSlider').value = dagen;
-    $('dagenPercent').value = (dagen/365*100).toFixed(1);
-    $('urenPerDag').value = uren;
-    $('urenSlider').value = uren;
-    $('urenPercent').value = (uren/24*100).toFixed(1);
-    $('duurtijdJaren').value = duurtijd;
+    // sync fields (avoid drift, keep whole-day / quarter-hour rule) —
+    // but never overwrite the field the user is actively typing in, otherwise
+    // it snaps back to a minimum value on every keystroke and can never be cleared.
+    function setIfNotFocused(id, value){
+      if (document.activeElement !== $(id)) $(id).value = value;
+    }
+    setIfNotFocused('aantalPalen', aantal);
+    setIfNotFocused('dagenPerJaar', dagen);
+    setIfNotFocused('dagenSlider', dagen);
+    setIfNotFocused('dagenPercent', (dagen/365*100).toFixed(1));
+    setIfNotFocused('urenPerDag', uren);
+    setIfNotFocused('urenSlider', uren);
+    setIfNotFocused('urenPercent', (uren/24*100).toFixed(1));
+    setIfNotFocused('duurtijdJaren', duurtijd);
 
     var totalePrijsPalen = aantal * kostprijsPaal;
     var totaleInvestering = totalePrijsPalen + installatie;
@@ -501,6 +547,33 @@
     $('dKostenLooptijd').textContent = eur0.format(kostenLooptijd);
     $('dOmzetLooptijd').textContent = eur0.format(omzetLooptijd);
     $('dNetto').textContent = eur0.format(nettoResultaat);
+
+    // Totaal jaargebruik: (uren/dag x dagen/jaar) t.o.v. alle uren van het jaar (24 x 365 = 8.760u).
+    // Minimum nodig voor ROI = het gebruik waarbij de terugverdientijd exact gelijk is aan de ingestelde duurtijd.
+    var UREN_PER_JAAR = 24 * 365;
+    var huidigGebruikP = uren * dagen / UREN_PER_JAAR;
+    var minGebruikP = null;
+    if (margeKWh > 0 && vermogen > 0 && aantal > 0) {
+      var benodigdeJaarWinst = totaleInvestering / duurtijd;
+      var benodigdeEnergieJaar = (benodigdeJaarWinst + jaarVasteKosten) / margeKWh;
+      minGebruikP = benodigdeEnergieJaar / (vermogen * aantal * UREN_PER_JAAR);
+    }
+    var belowMin = (minGebruikP === null) || (huidigGebruikP < minGebruikP);
+    var barMax = Math.max(huidigGebruikP, minGebruikP || 0, 0.05) * 1.25;
+
+    $('usageBarFill').style.width = clamp(huidigGebruikP / barMax * 100, 0, 100) + '%';
+    $('usageBarFill').classList.toggle('below-min', belowMin);
+    $('usageCurrentPct').textContent = (huidigGebruikP * 100).toFixed(1) + '%';
+    $('usageDuurtijdLabel').textContent = duurtijd;
+
+    if (minGebruikP === null) {
+      $('usageBarMarker').style.display = 'none';
+      $('usageMinPct').textContent = 'onhaalbaar (marge per kWh ≤ 0)';
+    } else {
+      $('usageBarMarker').style.display = '';
+      $('usageBarMarker').style.left = clamp(minGebruikP / barMax * 100, 0, 100) + '%';
+      $('usageMinPct').textContent = minGebruikP > 1 ? '> 100% (onhaalbaar)' : (minGebruikP * 100).toFixed(1) + '%';
+    }
 
     drawChart(totaleInvestering, jaarWinst, duurtijd, paybackYears);
   }
