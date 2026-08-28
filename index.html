@@ -131,30 +131,16 @@
   .readout.total .val{color:var(--green-strong);font-size:15px;}
 
   .usage-total-field{margin-top:16px;}
-  .usage-bar-track{
-    position:relative;width:100%;height:12px;border-radius:6px;
-    background:var(--grey);overflow:visible;margin-top:8px;
+  .usage-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
+  .usage-stat{
+    background:#F6FAF9;border:1px dashed var(--grey);border-radius:9px;
+    padding:10px 12px;text-align:center;
   }
-  .usage-bar-fill{
-    position:absolute;left:0;top:0;height:100%;border-radius:6px;
-    background:var(--green-strong);width:0%;
-    transition:width .15s, background-color .15s;
-  }
-  .usage-bar-fill.below-min{background:#D97706;}
-  .usage-bar-marker{
-    position:absolute;top:-4px;width:2px;height:20px;
-    background:var(--blue);left:0%;transform:translateX(-1px);
-  }
-  .usage-bar-marker::after{
-    content:"";position:absolute;top:-4px;left:50%;transform:translateX(-50%);
-    border-left:4px solid transparent;border-right:4px solid transparent;
-    border-top:4px solid var(--blue);
-  }
-  .usage-bar-labels{
-    display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;
-    font-size:11.5px;color:var(--text-muted);margin-top:8px;
-  }
-  .usage-bar-labels strong{color:var(--blue);font-family:'Poppins',sans-serif;}
+  .usage-stat .usage-stat-label{font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;}
+  .usage-stat .usage-stat-val{font-size:17px;font-weight:700;color:var(--green-strong);font-family:'Poppins',sans-serif;}
+  .usage-stat.warn{background:#FFF6E9;border-color:#F0D9A8;}
+  .usage-stat.warn .usage-stat-val{color:#B45309;}
+  @media (max-width:420px){ .usage-stats{grid-template-columns:1fr;} }
 
   .checkbox-row{display:flex;align-items:center;gap:9px;}
   .checkbox-row input[type="checkbox"]{width:18px;height:18px;accent-color:var(--green-strong);}
@@ -316,13 +302,15 @@
 
         <div class="field usage-total-field">
           <label>Totaal jaargebruik <span class="hint">(uren/dag × dagen/jaar, t.o.v. alle 8.760 uren van het jaar)</span></label>
-          <div class="usage-bar-track">
-            <div class="usage-bar-fill" id="usageBarFill"></div>
-            <div class="usage-bar-marker" id="usageBarMarker"></div>
-          </div>
-          <div class="usage-bar-labels">
-            <span>Huidig gebruik: <strong id="usageCurrentPct">—</strong></span>
-            <span id="usageMinWrap">Minimum voor ROI binnen <span id="usageDuurtijdLabel">10</span>j: <strong id="usageMinPct">—</strong></span>
+          <div class="usage-stats">
+            <div class="usage-stat" id="usageCurrentStat">
+              <div class="usage-stat-label">Huidig gebruik</div>
+              <div class="usage-stat-val" id="usageCurrentPct">—</div>
+            </div>
+            <div class="usage-stat">
+              <div class="usage-stat-label">Min. voor ROI (<span id="usageDuurtijdLabel">10</span>j)</div>
+              <div class="usage-stat-val" id="usageMinPct">—</div>
+            </div>
           </div>
         </div>
       </div>
@@ -559,20 +547,15 @@
       minGebruikP = benodigdeEnergieJaar / (vermogen * aantal * UREN_PER_JAAR);
     }
     var belowMin = (minGebruikP === null) || (huidigGebruikP < minGebruikP);
-    var barMax = Math.max(huidigGebruikP, minGebruikP || 0, 0.05) * 1.25;
 
-    $('usageBarFill').style.width = clamp(huidigGebruikP / barMax * 100, 0, 100) + '%';
-    $('usageBarFill').classList.toggle('below-min', belowMin);
     $('usageCurrentPct').textContent = (huidigGebruikP * 100).toFixed(1) + '%';
+    $('usageCurrentStat').classList.toggle('warn', belowMin);
     $('usageDuurtijdLabel').textContent = duurtijd;
 
     if (minGebruikP === null) {
-      $('usageBarMarker').style.display = 'none';
-      $('usageMinPct').textContent = 'onhaalbaar (marge per kWh ≤ 0)';
+      $('usageMinPct').textContent = 'onhaalbaar';
     } else {
-      $('usageBarMarker').style.display = '';
-      $('usageBarMarker').style.left = clamp(minGebruikP / barMax * 100, 0, 100) + '%';
-      $('usageMinPct').textContent = minGebruikP > 1 ? '> 100% (onhaalbaar)' : (minGebruikP * 100).toFixed(1) + '%';
+      $('usageMinPct').textContent = minGebruikP > 1 ? '> 100%' : (minGebruikP * 100).toFixed(1) + '%';
     }
 
     drawChart(totaleInvestering, jaarWinst, duurtijd, paybackYears);
