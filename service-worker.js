@@ -1,6 +1,6 @@
 // Blitzpower ROI Calculator — offline app-shell cache
 // Bump CACHE_VERSION when index.html/assets change so clients pick up the update.
-const CACHE_VERSION = 'blitz-roi-v7';
+const CACHE_VERSION = 'blitz-roi-v8';
 const APP_SHELL = [
   './index.html',
   './manifest.json',
